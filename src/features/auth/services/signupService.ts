@@ -5,7 +5,7 @@ import type { SignupDTO } from '../dtos/signupDtos.js';
 export class SignupService {
   async processSignupRequest(payload: SignupDTO) {
     // 1. Check if user already exists in the system
-    const existingUser = await dbHelper.findUserByEmailOrUsername(payload.email, payload.username);
+    const existingUser = await dbHelper.findUserByEmailOrUsername(payload.email);
     if (existingUser) {
       throw new Error('Username or email is already taken.');
     }
@@ -20,7 +20,6 @@ export class SignupService {
 
     // 4. Persist the unverified session context
     await dbHelper.createUnverifiedUserSession({
-      username: payload.username,
       email: payload.email,
       passwordHash,
       otp,
