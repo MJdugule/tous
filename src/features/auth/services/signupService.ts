@@ -10,7 +10,7 @@ export class SignupService {
     }
 
     // 2. Hash raw credentials
-    const saltRounds = 20;
+    const saltRounds = 10;
     const passwordHash = await bcrypt.hash(payload.password, saltRounds);
 
     // 3. Generate a secure 6-digit numeric OTP code
