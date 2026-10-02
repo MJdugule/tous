@@ -4,14 +4,13 @@ import type { SignupDTO } from '../dtos/signupDtos.js';
 
 export class SignupService {
   async processSignupRequest(payload: SignupDTO) {
-    // 1. Check if user already exists in the system
     const existingUser = await dbHelper.findUserByEmailOrUsername(payload.email);
     if (existingUser) {
       throw new Error('Username or email is already taken.');
     }
 
     // 2. Hash raw credentials
-    const saltRounds = 10;
+    const saltRounds = 20;
     const passwordHash = await bcrypt.hash(payload.password, saltRounds);
 
     // 3. Generate a secure 6-digit numeric OTP code
