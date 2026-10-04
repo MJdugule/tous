@@ -20,4 +20,20 @@ export class AuthController {
       });
     }
   }
+
+  async verifyEmail(req: Request, res: Response): Promise<any> {
+    try {
+      const result = await authService.processVerifyEmailRequest(req.body);
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'An unexpected email verification error occurred.'
+      });
+    }
+  }
 }

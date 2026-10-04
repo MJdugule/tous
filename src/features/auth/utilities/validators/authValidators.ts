@@ -18,3 +18,22 @@ export const validateSignupBody = (req: Request, res: Response, next: NextFuncti
 
   next();
 };
+
+export const validateVerifyEmailBody = (req: Request, res: Response, next: NextFunction): any => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Missing fields: email and otp are required.' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
+  }
+
+  if (!/^\d{6}$/.test(String(otp))) {
+    return res.status(400).json({ success: false, message: 'OTP must be a valid 6-digit numeric code.' });
+  }
+
+  next();
+};
