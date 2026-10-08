@@ -1,32 +1,6 @@
-type VerifiedUser = {
-  username: string;
-  email: string;
-  passwordHash: string;
-  isVerified: true;
-  verifiedAt: Date;
-};
-
-type UnverifiedUserSession = {
-  username: string;
-  email: string;
-  passwordHash: string;
-  otp: string;
-  expiresAt: Date;
-};
-
-const users = new Map<string, VerifiedUser>();
-const pendingVerifications = new Map<string, UnverifiedUserSession>();
-
-export const findUserByEmailOrUsername = async (identifier: string) => {
-  const normalizedIdentifier = identifier.toLowerCase();
-
-  for (const user of users.values()) {
-    if (user.email.toLowerCase() === normalizedIdentifier || user.username.toLowerCase() === normalizedIdentifier) {
-      return user;
-    }
-  }
-
-  return null;
+export const findUserByEmailOrUsername = async (email: string) => {
+  // Mock DB lookup logic
+  return null; 
 };
 
 export const createUnverifiedUserSession = async (data: UnverifiedUserSession) => {
