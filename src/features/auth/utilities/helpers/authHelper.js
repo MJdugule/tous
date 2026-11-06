@@ -1,9 +1,9 @@
 import User from '../../models/user.model.js';
 import PendingVerification from '../../models/pendingVerification.model.js';
 
-export const findUserByEmailOrUsername = async (value) => {
+export const findUserByEmailOrFullName = async (value) => {
   const normalized = String(value).toLowerCase();
-  return User.findOne({ $or: [{ email: normalized }, { username: String(value) }] });
+  return User.findOne({ $or: [{ email: normalized }, { fullName: String(value) }] });
 };
 
 export const createUnverifiedUserSession = async (data) => {
@@ -13,7 +13,7 @@ export const createUnverifiedUserSession = async (data) => {
     { email },
     {
       $set: {
-        username: data.username,
+        fullName: data.fullName,
         email,
         passwordHash: data.passwordHash,
         otp: data.otp,
@@ -44,7 +44,7 @@ export const createVerifiedUserFromSession = async (email) => {
     { email: normalized },
     {
       $setOnInsert: {
-        username: session.username,
+        fullName: session.fullName,
         email: normalized,
         passwordHash: session.passwordHash,
         isVerified: true,

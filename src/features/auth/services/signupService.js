@@ -4,9 +4,10 @@ import { sendSignupOtpEmail } from '../utilities/helpers/emailHelper.js';
 
 /**
  * @typedef {Object} SignupDTO
- * @property {string} username
+ * @property {string} fullName
  * @property {string} email
  * @property {string} password
+ * @property {string} confirmPassword
  */
 
 /**
@@ -17,11 +18,11 @@ import { sendSignupOtpEmail } from '../utilities/helpers/emailHelper.js';
 
 export class SignupService {
   async processSignupRequest(payload) {
-    const existingByEmail = await dbHelper.findUserByEmailOrUsername(payload.email);
-    const existingByUsername = await dbHelper.findUserByEmailOrUsername(payload.username);
+    const existingByEmail = await dbHelper.findUserByEmailOrFullName(payload.email);
+    const existingByFullName = await dbHelper.findUserByEmailOrFullName(payload.fullName);
 
-    if (existingByEmail || existingByUsername) {
-      throw new Error('Username or email is already taken.');
+    if (existingByEmail || existingByFullName) {
+      throw new Error('Full name or email is already taken.');
     }
 
     const saltRounds = 10;
@@ -31,7 +32,7 @@ export class SignupService {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     await dbHelper.createUnverifiedUserSession({
-      username: payload.username,
+      fullName: payload.fullName,
       email: payload.email,
       passwordHash,
       otp,
@@ -62,7 +63,7 @@ export class SignupService {
 
     return {
       email: user.email,
-      username: user.username,
+      fullName: user.fullName,
       message: 'Email has been verified successfully.'
     };
   }

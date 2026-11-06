@@ -30,7 +30,7 @@ npm start     # plain node
 
 | Method | Route                    | Body                                |
 | ------ | ------------------------ | ----------------------------------- |
-| POST   | `/api/auth/signup`       | `{ username, email, password }`     |
+| POST   | `/api/auth/signup`       | `{ fullName, email, password, confirmPassword }` |
 | POST   | `/api/auth/verify-email` | `{ email, otp }`                    |
 
 Signup stores a pending verification (OTP, 10 min expiry) in MongoDB and emails the
