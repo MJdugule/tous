@@ -1,10 +1,22 @@
 import bcrypt from 'bcrypt';
 import * as dbHelper from '../utilities/helpers/authHelper.js';
 import { sendSignupOtpEmail } from '../utilities/helpers/emailHelper.js';
-import type { SignupDTO, VerifyEmailDTO } from '../dtos/signupDtos.js';
+
+/**
+ * @typedef {Object} SignupDTO
+ * @property {string} username
+ * @property {string} email
+ * @property {string} password
+ */
+
+/**
+ * @typedef {Object} VerifyEmailDTO
+ * @property {string} email
+ * @property {string} otp
+ */
 
 export class SignupService {
-  async processSignupRequest(payload: SignupDTO) {
+  async processSignupRequest(payload) {
     const existingByEmail = await dbHelper.findUserByEmailOrUsername(payload.email);
     const existingByUsername = await dbHelper.findUserByEmailOrUsername(payload.username);
 
@@ -31,7 +43,7 @@ export class SignupService {
     return { email: payload.email, message: 'Verification OTP has been dispatched to your email address.' };
   }
 
-  async processVerifyEmailRequest(payload: VerifyEmailDTO) {
+  async processVerifyEmailRequest(payload) {
     const session = await dbHelper.findUnverifiedUserSessionByEmail(payload.email);
 
     if (!session) {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/signupController.js'; // Fixed: Explicit .js extension
-import { validateSignupBody, validateVerifyEmailBody } from '../utilities/validators/authValidators.js'; // Fixed: Explicit .js extension
+import { AuthController } from '../controllers/signupController.js';
+import { validateSignupBody, validateVerifyEmailBody } from '../utilities/validators/authValidators.js';
 
 const router = Router();
 const controller = new AuthController();

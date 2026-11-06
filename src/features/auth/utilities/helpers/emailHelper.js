@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-const parseBoolean = (value: string | undefined): boolean => {
+const parseBoolean = (value) => {
   if (!value) {
     return false;
   }
@@ -29,7 +29,7 @@ const transporter = isSmtpConfigured
     })
   : null;
 
-export const sendSignupOtpEmail = async (email: string, otp: string): Promise<void> => {
+export const sendSignupOtpEmail = async (email, otp) => {
   if (!transporter) {
     console.warn('[Email Service]: SMTP config missing. OTP dispatch skipped.');
     console.log(`📨 [Email Service]: OTP for ${email} is ${otp}`);

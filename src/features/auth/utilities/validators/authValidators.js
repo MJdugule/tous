@@ -1,13 +1,12 @@
-import type { Request, Response, NextFunction } from 'express';
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const validateSignupBody = (req: Request, res: Response, next: NextFunction): any => {
+export const validateSignupBody = (req, res, next) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ success: false, message: 'Missing fields: username, email, and password are required.' });
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
   }
@@ -19,14 +18,13 @@ export const validateSignupBody = (req: Request, res: Response, next: NextFuncti
   next();
 };
 
-export const validateVerifyEmailBody = (req: Request, res: Response, next: NextFunction): any => {
+export const validateVerifyEmailBody = (req, res, next) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
     return res.status(400).json({ success: false, message: 'Missing fields: email and otp are required.' });
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
   }
