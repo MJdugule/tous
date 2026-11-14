@@ -9,7 +9,6 @@
 /**
  * @typedef {Object} SignupResponseDTO
  * @property {string} email
- * @property {string} message
  */
 
 export {};

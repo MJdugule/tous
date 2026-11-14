@@ -4,11 +4,4 @@
  * @property {string} password
  */
 
-/**
- * @typedef {Object} SignedInUserDTO
- * @property {string} id
- * @property {string} fullName
- * @property {string} email
- */
-
 export {};

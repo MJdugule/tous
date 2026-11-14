@@ -30,9 +30,9 @@ async function start() {
       console.log(`Server is running on http://localhost:${PORT}`);
       const swaggerUrl = `http://localhost:${PORT}/api-docs`;
       console.log(`Swagger UI is available at ${swaggerUrl}`);
-      open(swaggerUrl).catch((error) => {
-        console.error('Failed to open Swagger UI in a browser:', error.message);
-      });
+      // open(swaggerUrl).catch((error) => {
+      //   console.error('Failed to open Swagger UI in a browser:', error.message);
+      // });
     });
   } catch (error) {
     console.error('❌ Failed to connect to MongoDB:', error.message);

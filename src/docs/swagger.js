@@ -62,6 +62,31 @@ export const swaggerSpec = {
         }
       }
     },
+    '/api/auth/refresh': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Rotate the refresh token and issue a new access token',
+        requestBody: jsonRequest('RefreshTokenDTO'),
+        responses: {
+          200: jsonResponse('Tokens refreshed successfully.', 'RefreshSuccessResponseDTO'),
+          400: jsonResponse('The request body is invalid.', 'ErrorResponseDTO'),
+          401: jsonResponse('The refresh token is invalid, expired, or already used.', 'ErrorResponseDTO'),
+          500: jsonResponse('An unexpected token refresh error occurred.', 'ErrorResponseDTO')
+        }
+      }
+    },
+    '/api/auth/signout': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Revoke the supplied refresh token',
+        requestBody: jsonRequest('RefreshTokenDTO'),
+        responses: {
+          200: jsonResponse('Signed out successfully.', 'SignOutSuccessResponseDTO'),
+          400: jsonResponse('The request body is invalid.', 'ErrorResponseDTO'),
+          500: jsonResponse('An unexpected sign-out error occurred.', 'ErrorResponseDTO')
+        }
+      }
+    },
     '/api/auth/signup': {
       post: {
         tags: ['Auth'],
@@ -87,6 +112,16 @@ export const swaggerSpec = {
   },
   components: {
     schemas: {
+      AuthTokensDTO: {
+        type: 'object',
+        required: ['accessToken', 'refreshToken', 'tokenType', 'expiresIn'],
+        properties: {
+          accessToken: { type: 'string' },
+          refreshToken: { type: 'string' },
+          tokenType: { type: 'string', enum: ['Bearer'] },
+          expiresIn: { type: 'integer', description: 'Access-token lifetime in seconds.', example: 900 }
+        }
+      },
       SignInDTO: {
         type: 'object',
         required: ['email', 'password'],
@@ -95,16 +130,44 @@ export const swaggerSpec = {
           password: { type: 'string', format: 'password', minLength: 1, maxLength: 128 }
         }
       },
-      SignedInUserDTO: {
+      SignInResponseDTO: {
         type: 'object',
-        required: ['id', 'fullName', 'email'],
+        required: ['id', 'fullName', 'email', 'accessToken', 'refreshToken', 'tokenType', 'expiresIn'],
         properties: {
           id: { type: 'string', example: '66510a1ef6a1a2e392e11481' },
           fullName: { type: 'string', example: 'Taylor Example' },
-          email: { type: 'string', format: 'email', example: 'user@example.com' }
+          email: { type: 'string', format: 'email', example: 'user@example.com' },
+          accessToken: { type: 'string' },
+          refreshToken: { type: 'string' },
+          tokenType: { type: 'string', enum: ['Bearer'] },
+          expiresIn: { type: 'integer', description: 'Access-token lifetime in seconds.', example: 900 }
         }
       },
-      SignInSuccessResponseDTO: successResponse('SignedInUserDTO'),
+      SignInSuccessResponseDTO: {
+        type: 'object',
+        required: ['success', 'message', 'data'],
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Signin successful' },
+          data: { $ref: '#/components/schemas/SignInResponseDTO' }
+        }
+      },
+      RefreshTokenDTO: {
+        type: 'object',
+        required: ['refreshToken'],
+        properties: {
+          refreshToken: { type: 'string' }
+        }
+      },
+      RefreshSuccessResponseDTO: successResponse('AuthTokensDTO'),
+      SignOutSuccessResponseDTO: {
+        type: 'object',
+        required: ['success', 'message'],
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Signed out successfully.' }
+        }
+      },
       SignupDTO: {
         type: 'object',
         required: ['fullName', 'email', 'password', 'confirmPassword'],
@@ -115,33 +178,44 @@ export const swaggerSpec = {
           confirmPassword: { type: 'string', minLength: 8, maxLength: 128 }
         }
       },
-      SignupResponseDTO: {
+      SignupSuccessResponseDTO: {
         type: 'object',
-        required: ['email', 'message'],
+        required: ['success', 'message', 'data'],
         properties: {
-          email: { type: 'string', format: 'email' },
-          message: { type: 'string' }
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'OTP has been sent to your email address.' },
+          data: {
+            type: 'object',
+            required: ['email'],
+            properties: { email: { type: 'string', format: 'email' } }
+          }
         }
       },
-      SignupSuccessResponseDTO: successResponse('SignupResponseDTO'),
       VerifyEmailDTO: {
         type: 'object',
         required: ['email', 'otp'],
         properties: {
           email: { type: 'string', format: 'email' },
-          otp: { type: 'string', pattern: '^\\d{8}$', example: '12345678' }
+          otp: { type: 'string', pattern: '^\\d{6}$', example: '123456' }
         }
       },
       VerifiedEmailDTO: {
         type: 'object',
-        required: ['email', 'fullName', 'message'],
+        required: ['email', 'fullName'],
         properties: {
           email: { type: 'string', format: 'email' },
-          fullName: { type: 'string' },
-          message: { type: 'string' }
+          fullName: { type: 'string' }
         }
       },
-      VerifyEmailSuccessResponseDTO: successResponse('VerifiedEmailDTO'),
+      VerifyEmailSuccessResponseDTO: {
+        type: 'object',
+        required: ['success', 'message', 'data'],
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Email has been verified successfully.' },
+          data: { $ref: '#/components/schemas/VerifiedEmailDTO' }
+        }
+      },
       ErrorResponseDTO: errorResponse
     }
   }

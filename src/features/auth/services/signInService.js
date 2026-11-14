@@ -1,21 +1,19 @@
 import bcrypt from 'bcrypt';
 import * as dbHelper from '../utilities/helpers/authHelper.js';
+import { TokenService } from './tokenService.js';
+import { AuthenticationError } from '../utilities/errors/authenticationError.js';
 
 /** @typedef {import('../dtos/signIn.dto.js').SignInDTO} SignInDTO */
-/** @typedef {import('../dtos/signIn.dto.js').SignedInUserDTO} SignedInUserDTO */
+/** @typedef {import('../dtos/refreshToken.dto.js').SignInResponseDTO} SignInResponseDTO */
 
-export class AuthenticationError extends Error {
-  constructor(message, statusCode = 401) {
-    super(message);
-    this.name = 'AuthenticationError';
-    this.statusCode = statusCode;
+export class SigninService {
+  constructor() {
+    this.tokenService = new TokenService();
   }
-}
 
-export class SignInService {
   /**
    * @param {SignInDTO} payload
-   * @returns {Promise<SignedInUserDTO>}
+   * @returns {Promise<SignInResponseDTO>}
    */
   async processSignInRequest(payload) {
     const user = await dbHelper.findUserByEmail(payload.email);
@@ -28,10 +26,13 @@ export class SignInService {
       throw new AuthenticationError('Please verify your email before signing in.', 403);
     }
 
+    const tokens = await this.tokenService.issueTokens(user);
+
     return {
       id: user.id,
       fullName: user.fullName,
-      email: user.email
+      email: user.email,
+      ...tokens
     };
   }
 }

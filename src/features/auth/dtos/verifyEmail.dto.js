@@ -8,7 +8,6 @@
  * @typedef {Object} VerifiedEmailDTO
  * @property {string} email
  * @property {string} fullName
- * @property {string} message
  */
 
 export {};

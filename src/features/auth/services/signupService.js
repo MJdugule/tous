@@ -1,11 +1,14 @@
 import bcrypt from 'bcrypt';
 import * as dbHelper from '../utilities/helpers/authHelper.js';
 import { sendSignupOtpEmail } from '../utilities/helpers/emailHelper.js';
+import { TokenService } from './tokenService.js';
 
 /** @typedef {import('../dtos/signup.dto.js').SignupDTO} SignupDTO */
 /** @typedef {import('../dtos/verifyEmail.dto.js').VerifyEmailDTO} VerifyEmailDTO */
 /** @typedef {import('../dtos/signup.dto.js').SignupResponseDTO} SignupResponseDTO */
 /** @typedef {import('../dtos/verifyEmail.dto.js').VerifiedEmailDTO} VerifiedEmailDTO */
+
+const tokenService = new TokenService();
 
 export class SignupService {
   /**
@@ -36,7 +39,7 @@ export class SignupService {
 
     await sendSignupOtpEmail(payload.email, otp);
 
-    return { email: payload.email, message: 'Verification OTP has been dispatched to your email address.' };
+    return { email: payload.email,};
   }
 
   /**
@@ -59,11 +62,13 @@ export class SignupService {
     }
 
     const user = await dbHelper.createVerifiedUserFromSession(payload.email);
+    const tokens = await tokenService.issueTokens(user);
 
     return {
-      email: user.email,
+      id: user.id,
       fullName: user.fullName,
-      message: 'Email has been verified successfully.'
+      email: user.email,
+      ...tokens
     };
   }
 }

@@ -1,6 +1,11 @@
 import { SignupService } from '../services/signupService.js';
+import { SigninService } from '../services/signInService.js';
+import { TokenService } from '../services/tokenService.js';
+import { AuthenticationError } from '../utilities/errors/authenticationError.js';
 
-const authService = new SignupService();
+const signupService = new SignupService();
+const signinService = new SigninService();
+const tokenService = new TokenService();
 
 const toErrorMessage = (error, fallback) =>
   error instanceof Error && error.message ? error.message : fallback;
@@ -8,10 +13,11 @@ const toErrorMessage = (error, fallback) =>
 export class AuthController {
   async signup(req, res) {
     try {
-      const result = await authService.processSignupRequest(req.body);
+      const result = await signupService.processSignupRequest(req.body);
 
       return res.status(200).json({
         success: true,
+        message: 'OTP has been sent to your email address.',
         data: result
       });
     } catch (error) {
@@ -22,12 +28,13 @@ export class AuthController {
     }
   }
 
-   async signIn(req, res) {
+  async signIn(req, res) {
     try {
-      const result = await signInService.processSignInRequest(req.body);
+      const result = await signinService.processSignInRequest(req.body);
 
       return res.status(200).json({
         success: true,
+        message: 'Signin successful',
         data: result
       });
     } catch (error) {
@@ -46,12 +53,54 @@ export class AuthController {
     }
   }
 
-  async verifyEmail(req, res) {
+  async refresh(req, res) {
     try {
-      const result = await authService.processVerifyEmailRequest(req.body);
+      const data = await tokenService.refreshTokens(req.body);
 
       return res.status(200).json({
         success: true,
+        data
+      });
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      console.error('[Auth Controller] Token refresh failed:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected token refresh error occurred.'
+      });
+    }
+  }
+
+  async signOut(req, res) {
+    try {
+      await tokenService.revokeRefreshToken(req.body);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Signed out successfully.'
+      });
+    } catch (error) {
+      console.error('[Auth Controller] Sign-out failed:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected sign-out error occurred.'
+      });
+    }
+  }
+
+  async verifyEmail(req, res) {
+    try {
+      const result = await signupService.processVerifyEmailRequest(req.body);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Email has been verified successfully.',
         data: result
       });
     } catch (error) {
