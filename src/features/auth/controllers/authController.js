@@ -8,7 +8,6 @@ const toErrorMessage = (error, fallback) =>
 export class AuthController {
   async signup(req, res) {
     try {
-      // payload data matches our clean structural definition layout
       const result = await authService.processSignupRequest(req.body);
 
       return res.status(200).json({
@@ -19,6 +18,30 @@ export class AuthController {
       return res.status(400).json({
         success: false,
         message: toErrorMessage(error, 'An unexpected registration error occurred.')
+      });
+    }
+  }
+
+   async signIn(req, res) {
+    try {
+      const result = await signInService.processSignInRequest(req.body);
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      console.error('[Sign-in Controller] Sign-in failed:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected sign-in error occurred.'
       });
     }
   }

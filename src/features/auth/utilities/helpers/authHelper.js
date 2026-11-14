@@ -6,6 +6,10 @@ export const findUserByEmailOrFullName = async (value) => {
   return User.findOne({ $or: [{ email: normalized }, { fullName: String(value) }] });
 };
 
+export const findUserByEmail = async (email) => {
+  return User.findOne({ email: email.toLowerCase() });
+};
+
 export const createUnverifiedUserSession = async (data) => {
   const email = data.email.toLowerCase();
 

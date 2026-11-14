@@ -30,8 +30,15 @@ npm start     # plain node
 
 | Method | Route                    | Body                                |
 | ------ | ------------------------ | ----------------------------------- |
+| POST   | `/api/auth/signin`       | `{ email, password }`               |
 | POST   | `/api/auth/signup`       | `{ fullName, email, password, confirmPassword }` |
 | POST   | `/api/auth/verify-email` | `{ email, otp }`                    |
+
+Swagger documentation is served at `/api-docs` and opens in your default browser
+when the server starts.
+
+Sign-in requires a verified account and returns the user's `id`, `fullName`, and
+`email`; passwords and password hashes are never included in the response.
 
 Signup stores a pending verification (OTP, 10 min expiry) in MongoDB and emails the
 code via SMTP (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` in `.env`); without

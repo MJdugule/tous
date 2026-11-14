@@ -27,6 +27,34 @@ export const validateUserSignUp = async (req, res, next) => {
 	}
 }
 
+export const validateUserSignIn = (req, res, next) => {
+	try {
+		const schema = Joi.object({
+			email: Joi.string().trim().email({ tlds: { allow: false } }).required(),
+			password: Joi.string().min(1).max(128).required()
+		});
+		const data = {
+			email: req.body?.email?.toLowerCase?.() ?? req.body?.email,
+			password: req.body?.password
+		};
+		const { error, value } = schema.validate(data, { abortEarly: false });
+
+		if (error) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid sign-in request.',
+				errors: error.details.map((detail) => detail.message)
+			});
+		}
+
+		req.body = value;
+		return next();
+	} catch (error) {
+		handleValidationError(error, res);
+	}
+
+};
+
 export const validateUserVerifyEmail = async (req, res, next) => {
 	try {
 		const schema = Joi.object().keys({
@@ -46,7 +74,7 @@ export const validateUserVerifyEmail = async (req, res, next) => {
 		req.body = parseBody(schema, data)
 		next()
 	} catch (error) {
-    handleValidationError(error, res);
+		handleValidationError(error, res);
 		// return res.status(error.status || 500).json({
 		// 	success: false,
 		// 	status: error.status || 500,
@@ -58,19 +86,19 @@ export const validateUserVerifyEmail = async (req, res, next) => {
 }
 
 const handleValidationError = (error, res) => {
-    if (error instanceof ValidationError) {
-        res.status(400).json({success: false, status: 'error', message: error.message || 'An unexpected validation error occurred.', errors: error.errors });
-        return;
-    }
-    res.status(500).json({ success: false, status: 'error', message: 'Unexpected validation error' });
+	if (error instanceof ValidationError) {
+		res.status(400).json({ success: false, status: 'error', message: error.message || 'An unexpected validation error occurred.', errors: error.errors });
+		return;
+	}
+	res.status(500).json({ success: false, status: 'error', message: 'Unexpected validation error' });
 };
 
-const parseBody = (schema, data)=> {
-    const result = schema.safeParse(data);
-    if (!result.success) {
-        throw new 
-            result.error.details.map((detail) => detail.message)
-        
-    }
-    return result.data;
+const parseBody = (schema, data) => {
+	const result = schema.safeParse(data);
+	if (!result.success) {
+		throw new
+			result.error.details.map((detail) => detail.message)
+
+	}
+	return result.data;
 };
