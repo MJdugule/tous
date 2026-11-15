@@ -46,7 +46,7 @@ export class SignupService {
     await dbHelper.createUser({
         fullName: payload.fullName,
         email: payload.email,
-        passwordHash: payload.passwordHash,
+        passwordHash: passwordHash,
         isVerified: false
         // role: "USER"
         // verifiedAt: new Date()

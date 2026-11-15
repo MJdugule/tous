@@ -15,9 +15,10 @@ export class SigninService {
    * @param {SignInDTO} payload
    * @returns {Promise<SignInResponseDTO>}
    */
-  async processSignInRequest(payload) {
+  async asyncSignInUser(payload) {
     const user = await dbHelper.findUserByEmail(payload.email);
 
+    // console.log(await bcrypt.compare(payload.password, user.passwordHash));
     if (!user || !(await bcrypt.compare(payload.password, user.passwordHash))) {
       throw new AuthenticationError('Invalid email or password.');
     }

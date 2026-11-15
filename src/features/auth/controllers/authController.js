@@ -30,7 +30,7 @@ export class AuthController {
 
   async signIn(req, res) {
     try {
-      const result = await signinService.processSignInRequest(req.body);
+      const result = await signinService.asyncSignInUser(req.body);
 
       return res.status(200).json({
         success: true,
