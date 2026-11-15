@@ -41,17 +41,19 @@ export class TokenService {
   async issueTokens(user) {
     validateTokenLifetimes();
     const accessToken = jwt.sign(
-      {},
+      {
+        role: user.role,
+        userId: user.id,
+        email: user.email
+      },
       getAccessTokenSecret(),
       {
-        subject: user.id,
         issuer: 'tous',
         audience: 'tous-client',
-        expiresIn: accessTokenLifetime,
-        algorithm: 'HS256'
       }
     );
     const refreshToken = randomBytes(64).toString('base64url');
+    console.log(refreshToken);
 
     await Token.create({
       userId: user._id,

@@ -2,6 +2,7 @@
  * @typedef {Object} VerifyEmailDTO
  * @property {string} email
  * @property {string} otp
+ * @property {string} type
  */
 
 /**

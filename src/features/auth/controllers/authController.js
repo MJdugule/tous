@@ -13,7 +13,7 @@ const toErrorMessage = (error, fallback) =>
 export class AuthController {
   async signup(req, res) {
     try {
-      const result = await signupService.processSignupRequest(req.body);
+      const result = await signupService.asyncSignupUser(req.body);
 
       return res.status(200).json({
         success: true,
@@ -96,7 +96,7 @@ export class AuthController {
 
   async verifyEmail(req, res) {
     try {
-      const result = await signupService.processVerifyEmailRequest(req.body);
+      const result = await signupService.asyncVerifyEmail(req.body);
 
       return res.status(200).json({
         success: true,

@@ -17,9 +17,10 @@ export const createUnverifiedUserSession = async (data) => {
     { email },
     {
       $set: {
-        fullName: data.fullName,
+        // fullName: data.fullName,
         email,
-        passwordHash: data.passwordHash,
+        type: data.type,
+        // passwordHash: data.passwordHash,
         otp: data.otp,
         expiresAt: data.expiresAt
       }
@@ -32,33 +33,58 @@ export const createUnverifiedUserSession = async (data) => {
 };
 
 export const findUnverifiedUserSessionByEmail = async (email) => {
+  console.log(email)
   return PendingVerification.findOne({ email: email.toLowerCase() });
 };
 
-export const createVerifiedUserFromSession = async (email) => {
-  const normalized = email.toLowerCase();
+export const createUser = async (data) => {
+  const normalized = data.email.toLowerCase();
 
-  const session = await PendingVerification.findOne({ email: normalized });
+  // const session = await PendingVerification.findOne({ email: normalized });
 
-  if (!session) {
-    throw new Error('No pending verification session found for this email.');
-  }
+  // if (!session) {
+  //   throw new Error('No pending verification session found for this email.');
+  // }
 
   const user = await User.findOneAndUpdate(
     { email: normalized },
     {
       $setOnInsert: {
-        fullName: session.fullName,
-        email: normalized,
-        passwordHash: session.passwordHash,
-        isVerified: true,
-        verifiedAt: new Date()
+        fullName: data.fullName,
+        email: data.email,
+        passwordHash: data.passwordHash,
+        isVerified: data.isVerified,
+        // verifiedAt: new Date()
       }
     },
     { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true, runValidators: true }
   );
 
-  await PendingVerification.deleteOne({ email: normalized });
+  // await PendingVerification.deleteOne({ email: normalized });
+
+  return user;
+};
+
+export const findAndUpdateUser = async (data) => {
+  const normalized = data.email.toLowerCase();
+
+  // const session = await PendingVerification.findOne({ email: normalized });
+
+  // if (!session) {
+  //   throw new Error('No pending verification session found for this email.');
+  // }
+
+  const user = await User.findOneAndUpdate(
+    { email: normalized },
+    {
+      $set: data
+    },
+    { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true, runValidators: true }
+  );
+
+  console.log(user);
+
+  // await PendingVerification.deleteOne({ email: normalized });
 
   return user;
 };

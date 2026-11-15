@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const pendingVerificationSchema = new mongoose.Schema(
   {
-    fullName: { type: String, required: true, trim: true },
+    type: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
+    // passwordHash: { type: String, required: true },
     otp: { type: String, required: true },
     expiresAt: { type: Date, required: true }
   },

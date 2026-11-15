@@ -46,7 +46,8 @@ export const validateUserSignIn = validate(
 export const validateUserVerifyEmail = validate(
   Joi.object({
 	email,
-	otp: Joi.string().pattern(/^\d{6}$/).required()
+	otp: Joi.string().pattern(/^\d{6}$/).required(),
+	type: Joi.string().required()
   }),
   (body) => ({
 	...body,
