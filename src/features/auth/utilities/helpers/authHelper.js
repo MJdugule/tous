@@ -1,4 +1,5 @@
 import User from '../../models/user.model.js';
+import Token from '../../models/token.model.js';
 import PendingVerification from '../../models/pendingVerification.model.js';
 
 export const findUserByEmailOrFullName = async (value) => {
@@ -8,6 +9,10 @@ export const findUserByEmailOrFullName = async (value) => {
 
 export const findUserByEmail = async (email) => {
   return User.findOne({ email: email.toLowerCase() });
+};
+
+export const findUserById = async (id) => {
+  return User.findById(id);
 };
 
 export const createUnverifiedUserSession = async (data) => {
@@ -40,39 +45,24 @@ export const findUnverifiedUserSessionByEmail = async (email) => {
 export const createUser = async (data) => {
   const normalized = data.email.toLowerCase();
 
-  // const session = await PendingVerification.findOne({ email: normalized });
-
-  // if (!session) {
-  //   throw new Error('No pending verification session found for this email.');
-  // }
-
-  const user = await User.findOneAndUpdate(
-    { email: normalized },
+  const user = await User.create(
+    // { email: normalized },
     {
-      $setOnInsert: {
-        fullName: data.fullName,
-        email: data.email,
-        passwordHash: data.passwordHash,
-        isVerified: data.isVerified,
-        // verifiedAt: new Date()
-      }
-    },
-    { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true, runValidators: true }
+      // $setOnInsert: {
+      fullName: data.fullName,
+      email: normalized,
+      passwordHash: data.passwordHash,
+      isVerified: data.isVerified,
+      // verifiedAt: new Date()
+      //   }
+    }
   );
-
-  // await PendingVerification.deleteOne({ email: normalized });
 
   return user;
 };
 
 export const findAndUpdateUser = async (data) => {
   const normalized = data.email.toLowerCase();
-
-  // const session = await PendingVerification.findOne({ email: normalized });
-
-  // if (!session) {
-  //   throw new Error('No pending verification session found for this email.');
-  // }
 
   const user = await User.findOneAndUpdate(
     { email: normalized },
@@ -84,7 +74,17 @@ export const findAndUpdateUser = async (data) => {
 
   console.log(user);
 
-  // await PendingVerification.deleteOne({ email: normalized });
-
   return user;
+};
+
+export const createTokenForUser = async (data) => {
+  const token = await Token.create(data);
+  console.log(token);
+  return token;
+};
+
+export const updateTokenForUser = async (data) => {
+  const token = await Token.findOneAndUpdate(data);
+  console.log(token);
+  return token;
 };

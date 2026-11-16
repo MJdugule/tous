@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const tokenSchema = new mongoose.Schema(
+const tokenModel = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     tokenHash: { type: String, required: true, unique: true },
@@ -10,6 +10,6 @@ const tokenSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-tokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+tokenModel.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export default mongoose.model('Token', tokenSchema);
+export default mongoose.model('Token', tokenModel);

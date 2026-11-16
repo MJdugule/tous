@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import Token from '../models/token.model.js';
 import User from '../models/user.model.js';
 import { AuthenticationError } from '../utilities/errors/authenticationError.js';
+import * as dbHelper from '../utilities/helpers/authHelper.js';
 
 /** @typedef {import('../dtos/refreshToken.dto.js').RefreshTokenDTO} RefreshTokenDTO */
 /** @typedef {import('../dtos/refreshToken.dto.js').AuthTokensDTO} AuthTokensDTO */
@@ -55,11 +55,11 @@ export class TokenService {
     const refreshToken = randomBytes(64).toString('base64url');
     console.log(refreshToken);
 
-    await Token.create({
+    await dbHelper.createTokenForUser({
       userId: user._id,
       tokenHash: hashToken(refreshToken),
       expiresAt: new Date(Date.now() + refreshTokenLifetime * 1000)
-    });
+    })
 
     return {
       accessToken,
@@ -76,7 +76,7 @@ export class TokenService {
   async refreshTokens(payload) {
     validateTokenLifetimes();
     getAccessTokenSecret();
-    const activeToken = await RefreshToken.findOneAndUpdate(
+    const activeToken = await dbHelper.updateTokenForUser(
       {
         tokenHash: hashToken(payload.refreshToken),
         revokedAt: null,
@@ -90,7 +90,7 @@ export class TokenService {
       throw new AuthenticationError('Invalid or expired refresh token.');
     }
 
-    const user = await User.findById(activeToken.userId);
+    const user = await dbHelper.findUserById(activeToken.id)
 
     if (!user || !user.isVerified) {
       throw new AuthenticationError('Invalid or expired refresh token.');
@@ -103,7 +103,7 @@ export class TokenService {
    * @param {RefreshTokenDTO} payload
    */
   async revokeRefreshToken(payload) {
-    await RefreshToken.updateOne(
+    await Token.updateOne(
       { tokenHash: hashToken(payload.refreshToken), revokedAt: null },
       { $set: { revokedAt: new Date() } }
     );

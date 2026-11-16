@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const pendingVerificationSchema = new mongoose.Schema(
+const pendingVerificationModel = new mongoose.Schema(
   {
     type: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -11,4 +11,4 @@ const pendingVerificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model('PendingVerification', pendingVerificationSchema);
+export default mongoose.model('PendingVerification', pendingVerificationModel);
