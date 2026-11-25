@@ -24,7 +24,8 @@ export const validateUserSignUp = validate(
 	fullName: Joi.string().trim().min(3).max(100).regex(/[A-Za-z]/).required(),
 	email,
 	password: Joi.string().min(8).max(128).required(),
-	confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+	confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+	gender: Joi.string().lowercase().valid('male', 'female').required()
   }),
   (body) => ({
 	...body,

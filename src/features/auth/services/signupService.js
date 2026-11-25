@@ -25,6 +25,7 @@ export class SignupService {
       await dbHelper.createUnverifiedUserSession({
       email: payload.email,
       type: "REGISTRATION",
+      gender: payload.gender,
       otp,
       expiresAt
     });
@@ -46,7 +47,8 @@ export class SignupService {
     await dbHelper.createUser({
         fullName: payload.fullName,
         email: payload.email,
-        passwordHash: passwordHash,
+        passwordHash,
+        gender: payload.gender,
         isVerified: false
         // role: "USER"
         // verifiedAt: new Date()
@@ -54,6 +56,7 @@ export class SignupService {
     await dbHelper.createUnverifiedUserSession({
       email: payload.email,
       type: "REGISTRATION",
+      gender: payload.gender,
       otp,
       expiresAt
     });
@@ -92,7 +95,8 @@ export class SignupService {
       payload = {
         email: payload.email,
         isVerified: true,
-        verifiedAt: new Date()
+        verifiedAt: new Date(),
+        ...(session.gender ? { gender: session.gender } : {})
       }
       const user = await dbHelper.findAndUpdateUser(payload);
       const tokens = await tokenService.issueTokens(user);

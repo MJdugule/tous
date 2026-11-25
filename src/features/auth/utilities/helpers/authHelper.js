@@ -25,6 +25,7 @@ export const createUnverifiedUserSession = async (data) => {
         // fullName: data.fullName,
         email,
         type: data.type,
+        gender: data.gender,
         // passwordHash: data.passwordHash,
         otp: data.otp,
         expiresAt: data.expiresAt
@@ -52,6 +53,7 @@ export const createUser = async (data) => {
       fullName: data.fullName,
       email: normalized,
       passwordHash: data.passwordHash,
+      gender: data.gender,
       isVerified: data.isVerified,
       // verifiedAt: new Date()
       //   }
@@ -78,13 +80,13 @@ export const findAndUpdateUser = async (data) => {
 };
 
 export const createTokenForUser = async (data) => {
-  const token = await Token.create(data);
-  console.log(token);
-  return token;
+  return Token.create(data);
 };
 
-export const updateTokenForUser = async (data) => {
-  const token = await Token.findOneAndUpdate(data);
-  console.log(token);
+export const updateTokenForUser = async (filter, update, options = {}) => {
+  const token = await Token.findOneAndUpdate(filter, update, {
+    new: true,
+    ...options
+  });
   return token;
 };

@@ -50,22 +50,23 @@ export class TokenService {
       {
         issuer: 'tous',
         audience: 'tous-client',
+        expiresIn: accessTokenLifetime,
+        algorithm: 'HS256'
       }
     );
     const refreshToken = randomBytes(64).toString('base64url');
-    console.log(refreshToken);
 
     await dbHelper.createTokenForUser({
       userId: user._id,
       tokenHash: hashToken(refreshToken),
       expiresAt: new Date(Date.now() + refreshTokenLifetime * 1000)
-    })
+    });
 
     return {
       accessToken,
       refreshToken,
-      // tokenType: 'Bearer',
-      // expiresIn: accessTokenLifetime
+      tokenType: 'Bearer',
+      expiresIn: accessTokenLifetime
     };
   }
 
@@ -90,7 +91,7 @@ export class TokenService {
       throw new AuthenticationError('Invalid or expired refresh token.');
     }
 
-    const user = await dbHelper.findUserById(activeToken.id)
+    const user = await dbHelper.findUserById(activeToken.userId);
 
     if (!user || !user.isVerified) {
       throw new AuthenticationError('Invalid or expired refresh token.');
@@ -103,7 +104,7 @@ export class TokenService {
    * @param {RefreshTokenDTO} payload
    */
   async revokeRefreshToken(payload) {
-    await Token.updateOne(
+    await dbHelper.updateTokenForUser(
       { tokenHash: hashToken(payload.refreshToken), revokedAt: null },
       { $set: { revokedAt: new Date() } }
     );
