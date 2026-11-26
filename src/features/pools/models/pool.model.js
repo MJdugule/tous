@@ -10,10 +10,10 @@ const poolSchema = new mongoose.Schema(
     price: { type: Number, default: 0, min: 0 },
     currency: { type: String, uppercase: true, trim: true, default: null },
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    allocationLock: {
-      token: { type: String, default: null },
-      expiresAt: { type: Date, default: null }
-    },
+    // allocationLock: {
+    //   token: { type: String, default: null },
+    //   expiresAt: { type: Date, default: null }
+    // },
     status: {
       type: String,
       enum: ['upcoming', 'active', 'completed'],

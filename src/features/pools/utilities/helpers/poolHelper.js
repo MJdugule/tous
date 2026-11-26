@@ -26,6 +26,15 @@ export const findPoolById = async (id) => {
   return query;
 };
 
+export const fetchAvailablePools = async (excludePoolIds) => {
+  return await Pool.find({
+    id: { $nin: excludePoolIds },
+    status: { $in: ['upcoming', 'active'] },
+  })
+    .populate('ownerId', 'name avatarUrl')
+    .sort({ scheduledAt: 1 });
+};
+
 export const findPools = async (filter) =>
   Pool.find(filter).populate('ownerId', 'fullName').sort({ startsAt: 1 });
 
@@ -64,6 +73,13 @@ export const findRoomsByUser = async (userId) =>
 
 export const findVerifiedRoomForUserInPool = async (poolId, userId) =>
   PoolVerification.findOne({ poolId, userId });
+
+export const findPoolAndUpdate = async (poolId, userId, data) =>
+  PoolVerification.findOneAndUpdate({ poolId, userId },
+      {
+        $set: data
+      },
+      { upsert: true, new: true });
 
 export const createPoolVerification = async (data) => PoolVerification.create(data);
 

@@ -11,16 +11,12 @@ import {
 const router = Router();
 const controller = new PoolController();
 
-router.post('/payments/webhook', validatePaymentWebhook, controller.paymentWebhook);
+// router.post('/payments/webhook', validatePaymentWebhook, controller.paymentWebhook);
 
 router.use(authenticateUser);
 router.get('/available', controller.getAvailablePools);
-router.get('/mine/rooms', controller.getMyRooms);
-router.patch('/me/gender', validateGender, controller.updateGender);
-router.get('/', validatePoolStatusQuery, controller.listPools);
 router.post('/', validateCreatePool, controller.createPool);
-router.post('/:poolId/payment-intents', controller.createPaymentIntent);
-router.get('/:poolId/rooms', controller.getPoolRooms);
-router.post('/:poolId/join', controller.joinPool);
+router.post('/:poolId/register',  controller.registerPool);
+router.get('/registered', controller.getMyRegisteredPools);
 
 export default router;

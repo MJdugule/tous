@@ -10,6 +10,7 @@ import poolRoutes from './features/pools/routes/poolRoutes.js';
 import { swaggerSpec } from './docs/swagger.js';
 import { Server } from 'socket.io';
 import { registerRoomHandlers } from './features/pools/services/roomSocket.js';
+import { startPoolScheduler } from './utilities/helpers/cronWorker.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -73,6 +74,8 @@ async function start() {
   try {
     await mongoose.connect(MONGO_URI);
     console.log(`🗄️  Connected to MongoDB: ${MONGO_URI}`);
+
+    startPoolScheduler(io, 30 * 1000);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);

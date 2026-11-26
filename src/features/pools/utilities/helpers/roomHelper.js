@@ -190,11 +190,3 @@ const removeUserFromWaitingRoom = async (socketId) => {
 //   );
 // };
 
-const fetchAvailablePools = async (excludePoolIds) => {
-  return await Pool.find({
-    _id: { $nin: excludePoolIds },
-    status: { $in: ['upcoming', 'active'] },
-  })
-    .populate('ownerId', 'name avatarUrl')
-    .sort({ scheduledAt: 1 });
-};

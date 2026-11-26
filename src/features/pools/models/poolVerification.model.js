@@ -12,13 +12,29 @@ const poolVerificationSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    selfieUrl: { type: String, required: true },
-    hasPaid: { type: Boolean, default: false },
+    selfieUrl: {
+      type: String,
+      default: null, // Optional at 8:00 AM registration; required before entering the live room at 10:00 PM
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['free', 'pending', 'paid'],
+      default: 'free',
+    },
+    paymentReference: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    amountPaid: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
 
-// Ensures a user only needs to verify their selfie once per pool
+// One verification/registration record per user per pool
 poolVerificationSchema.index({ poolId: 1, userId: 1 }, { unique: true });
 
 export default mongoose.model('PoolVerification', poolVerificationSchema);

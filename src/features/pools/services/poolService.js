@@ -2,6 +2,8 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import mongoose from 'mongoose';
 import { PoolError } from '../utilities/errors/poolError.js';
 import * as roomHelper from '../utilities/helpers/roomHelper.js';
+import PoolVerification from '../models/poolVerification.model.js';
+import RoomMember from '../models/roomMember.model.js';
 // import poolHelper from '../utilities/helpers/poolHelper.js';
 import * as poolHelper from '../utilities/helpers/poolHelper.js';
 // import * as poolHelper from '../utilities/helpers/poolHelper.js';
@@ -89,17 +91,17 @@ export class PoolService {
   }
 
   async getAvailablePools(userId) {
-  const activeMembership = await roomHelper.findRoomMemberById({ userId });
+  const activeMembership = await roomHelper.findRoomMemberById(userId );
   const excludePoolIds = activeMembership ? [activeMembership.poolId] : [];
 
+  
   const pools = await poolHelper.fetchAvailablePools(excludePoolIds);
-
   return Promise.all(
     pools.map(async (pool) => {
       const [openRoom, totalUsersInPool, verification] = await Promise.all([
-        roomHelper.getRoomByPoolId({ poolId: pool._id, status: 'open' }),
-        roomHelper.getRoomMemberLengthByID(pool._id),
-        poolHelper.findVerifiedRoomForUserInPool({ poolId: pool._id, userId }).select('_id'),
+        roomHelper.getRoomByPoolId({ poolId: pool.id, status: 'open' }),
+        roomHelper.getRoomMemberLengthByID(pool.id),
+        poolHelper.findVerifiedRoomForUserInPool(pool.id, userId ),
       ]);
 
       return {
@@ -112,64 +114,118 @@ export class PoolService {
   );
 };
 
-  async listPools(status) {
-    const now = new Date();
-    const filter = status === 'upcoming'
-      ? { startsAt: { $gt: now } }
-      : status === 'active'
-        ? { startsAt: { $lte: now } }
-        : {};
-    const pools = await poolHelper.findPools(filter);
-    const countRows = await poolHelper.countRoomMembersByPool(pools.map(({ _id }) => _id));
-    const counts = new Map(countRows.map(({ _id, totalUsers }) => [_id.toString(), totalUsers]));
-
-    return pools.map((pool) => poolDTO(pool, counts.get(pool.id) ?? 0));
+async registerForPool({ poolId, userId, selfieUrl = null }) {
+  const pool = await poolHelper.findPoolById(poolId);
+  if (!pool) throw new PoolError('Pool not found.', 400);
+  if (pool.status === 'completed') {
+    throw new PoolError('This pool has already ended.', 400);
   }
 
-  async getPoolRooms(poolId, userId) {
-    const pool = await getPoolOrThrow(poolId);
-    const rooms = await poolHelper.findRoomsByPool(pool._id);
-    const userRoom = rooms.find((room) =>
-      room.members.some((member) => member.userId?.id === userId.toString())
-    );
-    const user = await poolHelper.findUserGender(userId);
-    const availableRooms = rooms
-      .filter((room) =>
-        room.status === 'open' &&
-        ['male', 'female'].includes(user?.gender) &&
-        room[`${user.gender}Count`] < GENDER_ROOM_CAPACITY
-      )
-      .map(roomDTO);
-
+  // Check if user already has a confirmed registration
+  const existing = await poolHelper.findVerifiedRoomForUserInPool({ poolId, userId });
+  if (existing && (existing.paymentStatus === 'free' || existing.paymentStatus === 'paid')) {
     return {
-      pool: poolDTO(pool, rooms.reduce((sum, room) => sum + room.members.length, 0)),
-      myRoom: userRoom ? roomDTO(userRoom) : null,
-      availableRooms
+      requiresPayment: false,
+      verification: existing,
     };
   }
 
-  async getMyRooms(userId) {
-    const rooms = await poolHelper.findRoomsByUser(userId);
+  // CASE A: Free Pool -> Confirm immediately
+  if (!pool.isPaid) {
+    const verification = await poolHelper.findPoolAndUpdate(
+      poolId, userId, {
+          paymentStatus: 'free',
+          amountPaid: 0,
+          ...(selfieUrl ? { selfieUrl } : {}),
+        },
+    );
 
-    return rooms.map((room) => ({
-      ...roomDTO(room),
-      pool: room.poolId ? poolDTO(room.poolId) : null
-    }));
+    return {
+      requiresPayment: false,
+      verification,
+    };
   }
 
-  async updateGender(userId, gender) {
-    const membership = await poolHelper.findUserRoomMembership(userId);
-    if (membership) {
-      throw new PoolError('Gender cannot be changed after joining a room.', 409);
-    }
+  // CASE B: Paid Pool -> Mark as 'pending' and return payment reference for checkout
+  const reference = `POOL_${poolId}_${userId}_${Date.now()}`;
 
-    const user = await poolHelper.updateUserGender(userId, gender);
-    if (!user) {
-      throw new PoolError('User not found.', 404);
-    }
+  const verification = await poolHelper.findPoolAndUpdate(
+    poolId, userId,
+    {
+      $set: {
+        paymentStatus: 'pending',
+        paymentReference: reference,
+        ...(selfieUrl ? { selfieUrl } : {}),
+      },
+    },
+  );
 
-    return { gender: user.gender };
-  }
+  return {
+    requiresPayment: true,
+    paymentReference: reference,
+    amount: pool.price,
+    currency: pool.currency || 'NGN',
+    verification,
+  };
+};
+
+ async fetchMyRegisteredPools(userId){
+  const records = await PoolVerification.find({
+    userId,
+    paymentStatus: { $in: ['free', 'paid'] },
+  })
+    .populate({
+      path: 'poolId',
+      match: { status: { $in: ['upcoming', 'active'] } },
+      populate: { path: 'ownerId', select: 'name avatarUrl' },
+    })
+    .sort({ createdAt: -1 });
+
+  const activeRecords = records.filter((r) => r.poolId !== null);
+
+  return Promise.all(
+    activeRecords.map(async (ver) => {
+      const pool = ver.poolId;
+      const [totalRegistered, activeMember] = await Promise.all([
+        PoolVerification.countDocuments({
+          poolId: pool._id,
+          paymentStatus: { $in: ['free', 'paid'] },
+        }),
+        RoomMember.findOne({ poolId: pool._id, userId }).populate('roomId'),
+      ]);
+
+      return {
+        verificationId: ver._id,
+        paymentStatus: ver.paymentStatus,
+        registeredAt: ver.createdAt,
+        hasVerifiedSelfie: Boolean(ver.selfieUrl),
+        canEnterWaitingRoom: pool.status === 'active',
+        pool: {
+          id: pool._id,
+          title: pool.title,
+          description: pool.description,
+          imageUrl: pool.imageUrl,
+          startsAt: pool.startsAt,
+          status: pool.status,
+          isPaid: pool.isPaid,
+          price: pool.price,
+          currency: pool.currency || 'NGN',
+          totalRegisteredUsers: totalRegistered,
+          owner: pool.ownerId,
+        },
+        currentRoom: activeMember?.roomId
+          ? {
+              roomId: activeMember.roomId._id,
+              roomNumber: activeMember.roomId.roomNumber,
+              status: activeMember.roomId.status,
+              maleCount: activeMember.roomId.maleCount,
+              femaleCount: activeMember.roomId.femaleCount,
+            }
+          : null,
+      };
+    })
+  );
+};
 
   async joinPool(poolId, user) {
     // objectIdOrThrow(poolId);
