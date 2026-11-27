@@ -22,7 +22,8 @@ export const populatePoolOwner = async (pool) =>
   pool.populate('ownerId', 'fullName');
 
 export const findPoolById = async (id) => {
-  const query = Pool.findById(id);
+  const query = await Pool.findById(id);
+  console.log(query);
   return query;
 };
 

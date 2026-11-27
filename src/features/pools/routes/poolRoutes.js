@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PoolController } from '../controllers/poolController.js';
-import { authenticateUser } from '../middleware/authenticateUser.js';
+import { authenticateUser } from '../../auth/middlewares/authenticateUser.js';
 import {
   validateCreatePool,
   validateGender,

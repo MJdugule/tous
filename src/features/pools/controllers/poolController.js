@@ -57,8 +57,8 @@ export class PoolController {
         message: 'Successfully registered for pool',
         data: registration,
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      return sendError(res, error, 'Unable to register for pool.', 'Registration failed');
     }
   };
 

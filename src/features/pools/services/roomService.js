@@ -1,14 +1,17 @@
-import poolHelper  from '../utilities/helpers/poolHelper.js';
-import roomHelper from '../utilities/helpers/roomHelper.js';
-const { toPoolListItemDto, toUserRoomDto } = require('../dto/pool.dto');
-const AppError = require('../utilities/errors/AppError');
+import { PoolError } from '../utilities/errors/poolError.js';
+import * as poolHelper  from '../utilities/helpers/poolHelper.js';
+import * as roomHelper from '../utilities/helpers/roomHelper.js';
+// const { toPoolListItemDto, toUserRoomDto } = require('../dto/pool.dto');
+// const AppError = require('../utilities/errors/AppError');
 
-const joinWaitingRoom = async (poolId, user, socketId, selfieUrl) => {
+
+export class RoomService {
+ async joinWaitingRoom (poolId, user, socketId, selfieUrl) {
   if (!user || !user.gender) {
-    throw new AppError('User gender is required to join a room.', 400);
+    throw new PoolError('Update your profile to be able to join a pool.', 400);
   }
 
-  return poolHelper.assignUserToRoom({
+  return this.assignUserToRoom({
     poolId,
     userId: user._id || user.id,
     gender: user.gender, // Taken directly from the user object
@@ -17,7 +20,7 @@ const joinWaitingRoom = async (poolId, user, socketId, selfieUrl) => {
   });
 };
 
-const assignUserToRoom = async ({ poolId, userId, gender, socketId, selfieUrl }) => {
+  async assignUserToRoom  ({ poolId, userId, gender, socketId, selfieUrl }) {
   const pool = await poolHelper.findPoolById(poolId);
   if (!pool) throw new AppError('Pool not found.', 402);
   if (pool.status !== 'active') {
@@ -133,3 +136,4 @@ const assignUserToRoom = async ({ poolId, userId, gender, socketId, selfieUrl })
 
   return { room, reconnectedToStarted: false };
 };
+}
